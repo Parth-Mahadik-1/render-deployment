@@ -28,7 +28,7 @@ CLASS_NAMES = [
     "Healthy",
     "Miscellaneous",
     "Pink Rot"
-]git b
+]
 
 model = None
 
