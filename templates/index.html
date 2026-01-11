@@ -1,0 +1,289 @@
+<html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Potato Disease Detection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+        }
+        
+        .header {
+            margin-bottom: 2rem;
+        }
+        
+        .header h1 {
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 2.5rem;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        .upload-section {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 10px;
+            border: 2px dashed #dee2e6;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-section:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .file-label {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: #667eea;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+        
+        .file-label:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+        
+        .file-info {
+            margin-top: 1rem;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .predict-btn {
+            background: #48bb78;
+            color: white;
+            border: none;
+            padding: 1rem 3rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+        
+        .predict-btn:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+        }
+        
+        .predict-btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .diseases-info {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: #edf2f7;
+            border-radius: 10px;
+        }
+        
+        .diseases-info h3 {
+            color: #2d3748;
+            margin-bottom: 1rem;
+        }
+        
+        .diseases-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.5rem;
+            text-align: left;
+        }
+        
+        .disease-item {
+            padding: 0.5rem;
+            background: white;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+        
+        .flash-messages {
+            margin-bottom: 1rem;
+        }
+        
+        .flash-message {
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .flash-error {
+            background: #fed7d7;
+            color: #c53030;
+            border: 1px solid #feb2b2;
+        }
+        
+        .image-preview {
+            max-width: 300px;
+            max-height: 300px;
+            margin: 1rem auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .diseases-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🥔 Potato Disease Detection</h1>
+            <p>Upload an image of a potato leaf to detect diseases using AI</p>
+        </div>
+        
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for message in messages %}
+                        <div class="flash-message flash-error">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <!-- Upload Form -->
+        <form method="POST" action="{{ url_for('predict') }}" enctype="multipart/form-data" id="uploadForm">
+            <div class="upload-section" id="uploadSection">
+                <div class="upload-icon">📸</div>
+                <label for="file" class="file-label">Choose Image File</label>
+                <input type="file" name="file" id="file" class="file-input" accept=".png,.jpg,.jpeg,.gif,.bmp" required>
+                <div class="file-info" id="fileInfo">No file chosen</div>
+                <img id="imagePreview" class="image-preview" alt="Image preview">
+            </div>
+            
+            <button type="submit" class="predict-btn" id="predictBtn" disabled>
+                🔍 Analyze Disease
+            </button>
+        </form>
+        
+        <!-- Disease Information -->
+        <div class="diseases-info">
+            <h3>Detectable Diseases:</h3>
+            <div class="diseases-list">
+                <div class="disease-item">🟤 Black Scurf</div>
+                <div class="disease-item">⚫ Blackleg</div>
+                <div class="disease-item">🟫 Common Scab</div>
+                <div class="disease-item">🤎 Dry Rot</div>
+                <div class="disease-item">✅ Healthy</div>
+                <div class="disease-item">❓ Miscellaneous</div>
+                <div class="disease-item">🌸 Pink Rot</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const fileInput = document.getElementById('file');
+        const fileInfo = document.getElementById('fileInfo');
+        const predictBtn = document.getElementById('predictBtn');
+        const imagePreview = document.getElementById('imagePreview');
+        const uploadSection = document.getElementById('uploadSection');
+        
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                fileInfo.textContent = `Selected: ${file.name}`;
+                predictBtn.disabled = false;
+                
+                // Show image preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                fileInfo.textContent = 'No file chosen';
+                predictBtn.disabled = true;
+                imagePreview.style.display = 'none';
+            }
+        });
+        
+        // Drag and drop functionality
+        uploadSection.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadSection.style.borderColor = '#667eea';
+            uploadSection.style.background = '#f0f4ff';
+        });
+        
+        uploadSection.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            uploadSection.style.borderColor = '#dee2e6';
+            uploadSection.style.background = '#f8f9fa';
+        });
+        
+        uploadSection.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadSection.style.borderColor = '#dee2e6';
+            uploadSection.style.background = '#f8f9fa';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                fileInput.dispatchEvent(new Event('change'));
+            }
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,351 @@
+
+<html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disease Detection Result</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .header {
+            margin-bottom: 2rem;
+        }
+        
+        .header h1 {
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 2.2rem;
+        }
+        
+        .result-section {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            border-left: 5px solid #48bb78;
+        }
+        
+        .disease-name {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border-radius: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .healthy {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        
+        .disease {
+            background: #fed7d7;
+            color: #c53030;
+        }
+        
+        .confidence-section {
+            margin: 1.5rem 0;
+        }
+        
+        .confidence-label {
+            font-size: 1.1rem;
+            color: #4a5568;
+            margin-bottom: 0.5rem;
+        }
+        
+        .confidence-bar {
+            background: #e2e8f0;
+            border-radius: 25px;
+            height: 20px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            border-radius: 25px;
+            transition: width 0.5s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .confidence-high {
+            background: linear-gradient(45deg, #48bb78, #38a169);
+        }
+        
+        .confidence-medium {
+            background: linear-gradient(45deg, #ed8936, #dd6b20);
+        }
+        
+        .confidence-low {
+            background: linear-gradient(45deg, #e53e3e, #c53030);
+        }
+        
+        .confidence-text {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #2d3748;
+        }
+        
+        .file-info {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #edf2f7;
+            border-radius: 10px;
+        }
+        
+        .file-info strong {
+            color: #2d3748;
+        }
+        
+        .recommendation {
+            background: #bee3f8;
+            border: 1px solid #90cdf4;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+        }
+        
+        .recommendation h3 {
+            color: #2c5282;
+            margin-bottom: 0.5rem;
+        }
+        
+        .recommendation p {
+            color: #2d3748;
+            line-height: 1.6;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+        
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #48bb78;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+        }
+        
+        .disease-info {
+            text-align: left;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f7fafc;
+            border-radius: 8px;
+            border-left: 4px solid #4299e1;
+        }
+        
+        .disease-info h4 {
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+        
+        .disease-info ul {
+            color: #4a5568;
+            padding-left: 1.5rem;
+        }
+        
+        .disease-info li {
+            margin-bottom: 0.25rem;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .disease-name {
+                font-size: 1.5rem;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Detection Results</h1>
+        </div>
+        
+        <div class="result-section">
+            <div class="disease-name {{ 'healthy' if result.predicted_class == 'Healthy' else 'disease' }}">
+                {% if result.predicted_class == 'Healthy' %}
+                    ✅ {{ result.predicted_class }}
+                {% else %}
+                    ⚠ {{ result.predicted_class }}
+                {% endif %}
+            </div>
+            
+            <div class="confidence-section">
+                <div class="confidence-label">Confidence Level</div>
+                <div class="confidence-bar">
+                    <div class="confidence-fill 
+                        {% if result.confidence >= 80 %}confidence-high
+                        {% elif result.confidence >= 60 %}confidence-medium
+                        {% else %}confidence-low
+                        {% endif %}" 
+                        style="width: {{ result.confidence }}%">
+                        {{ result.confidence }}%
+                    </div>
+                </div>
+                <div class="confidence-text">{{ result.confidence }}% Confidence</div>
+            </div>
+            
+            <div class="file-info">
+                <strong>Analyzed File:</strong> {{ result.filename }}
+            </div>
+        </div>
+        
+        <!-- Disease-specific recommendations -->
+        {% if result.predicted_class != 'Healthy' %}
+            <div class="recommendation">
+                <h3>🚨 Action Recommended</h3>
+                <p>
+                    {% if result.predicted_class == 'Black Scurf' %}
+                        This potato shows signs of Black Scurf disease. Consider applying fungicide treatments and ensure proper storage conditions to prevent spread.
+                    {% elif result.predicted_class == 'Blackleg' %}
+                        Blackleg bacterial infection detected. Remove affected plants immediately and avoid overhead watering. Ensure good field drainage.
+                    {% elif result.predicted_class == 'Common Scab' %}
+                        Common Scab detected. This is typically a soil-borne bacterial disease. Consider soil pH management and crop rotation.
+                    {% elif result.predicted_class == 'Dry Rot' %}
+                        Dry Rot fungal infection identified. Remove affected tubers immediately and improve storage ventilation.
+                    {% elif result.predicted_class == 'Pink Rot' %}
+                        Pink Rot detected. This water mold thrives in wet conditions. Improve drainage and avoid waterlogged soil.
+                    {% else %}
+                        A miscellaneous condition has been detected. Consult with an agricultural specialist for proper identification and treatment.
+                    {% endif %}
+                </p>
+            </div>
+            
+            <div class="disease-info">
+                <h4>Additional Information:</h4>
+                <ul>
+                    {% if result.predicted_class == 'Black Scurf' %}
+                        <li>Caused by Rhizoctonia solani fungus</li>
+                        <li>Appears as dark, crusty patches on tuber surface</li>
+                        <li>Can reduce market quality but rarely affects yield significantly</li>
+                    {% elif result.predicted_class == 'Blackleg' %}
+                        <li>Bacterial disease affecting stems and tubers</li>
+                        <li>Spreads through infected seed potatoes</li>
+                        <li>Can cause significant yield losses if not controlled</li>
+                    {% elif result.predicted_class == 'Common Scab' %}
+                        <li>Caused by Streptomyces bacteria in soil</li>
+                        <li>More common in alkaline soils (pH > 7.0)</li>
+                        <li>Affects tuber appearance but not nutritional value</li>
+                    {% elif result.predicted_class == 'Dry Rot' %}
+                        <li>Caused by Fusarium fungi species</li>
+                        <li>Common in storage, especially with poor ventilation</li>
+                        <li>Can lead to complete tuber decay if untreated</li>
+                    {% elif result.predicted_class == 'Pink Rot' %}
+                        <li>Caused by Phytophthora erythroseptica</li>
+                        <li>Thrives in waterlogged, poorly drained soils</li>
+                        <li>Tubers turn pink when exposed to air</li>
+                    {% endif %}
+                </ul>
+            </div>
+        {% else %}
+            <div class="recommendation">
+                <h3>✅ Great News!</h3>
+                <p>Your potato appears to be healthy! Continue with regular monitoring and maintain good agricultural practices to keep your crop disease-free.</p>
+            </div>
+        {% endif %}
+        
+        <div class="actions">
+            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                📸 Analyze Another Image
+            </a>
+            <button onclick="window.print()" class="btn btn-secondary">
+                🖨 Print Results
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        // Add animation when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const confidenceFill = document.querySelector('.confidence-fill');
+            const originalWidth = confidenceFill.style.width;
+            confidenceFill.style.width = '0%';
+            
+            setTimeout(() => {
+                confidenceFill.style.width = originalWidth;
+            }, 500);
+        });
+    </script>
+</body>
+</html>
+
+l
