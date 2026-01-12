@@ -36,7 +36,9 @@ def load_trained_model():
     global model
     try:
         # Use the same model file you used with FastAPI
-        model = tf.keras.models.load_model("model\\model_with_inference_2.h5")
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        model_path = os.path.join(BASE_DIR, "model", "model_with_inference_2.h5")
+        model = tf.keras.models.load_model(model_path)
         print("✅ Model loaded successfully.")
     except Exception as e:
         print(f"❌ Error loading model: {e}")
