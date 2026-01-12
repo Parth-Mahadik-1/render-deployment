@@ -147,6 +147,6 @@ def predict():
 # ---------------------------
 # Run
 # ---------------------------
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host='0.0.0.0', port=port)
+from flask_ngrok import run_with_ngrok
+run_with_ngrok(app)  # automatically starts ngrok
+app.run()
