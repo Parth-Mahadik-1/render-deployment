@@ -42,6 +42,7 @@ def load_trained_model():
         print(f"❌ Error loading model: {e}")
         model = None
 
+load_trained_model()
 # ---------------------------
 # Image read / prediction (FastAPI logic)
 # ---------------------------
@@ -145,6 +146,5 @@ def predict():
 # Run
 # ---------------------------
 if __name__ == '__main__':
-    load_trained_model()
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
